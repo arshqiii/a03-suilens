@@ -1,0 +1,539 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: catalog-db
+  name: catalog-db
+spec:
+  ports:
+    - name: "5443"
+      port: 5443
+      targetPort: 5432
+  selector:
+    io.kompose.service: catalog-db
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: catalog-service
+  name: catalog-service
+spec:
+  ports:
+    - name: "3001"
+      port: 3001
+      targetPort: 3001
+  selector:
+    io.kompose.service: catalog-service
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: frontend
+  name: frontend
+spec:
+  ports:
+    - name: "5173"
+      port: 5173
+      targetPort: 5173
+  selector:
+    io.kompose.service: frontend
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: notification-db
+  name: notification-db
+spec:
+  ports:
+    - name: "5445"
+      port: 5445
+      targetPort: 5432
+  selector:
+    io.kompose.service: notification-db
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: notification-service
+  name: notification-service
+spec:
+  ports:
+    - name: "3003"
+      port: 3003
+      targetPort: 3003
+  selector:
+    io.kompose.service: notification-service
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: order-db
+  name: order-db
+spec:
+  ports:
+    - name: "5444"
+      port: 5444
+      targetPort: 5432
+  selector:
+    io.kompose.service: order-db
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: order-service
+  name: order-service
+spec:
+  ports:
+    - name: "3002"
+      port: 3002
+      targetPort: 3002
+  selector:
+    io.kompose.service: order-service
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: rabbitmq
+  name: rabbitmq
+spec:
+  ports:
+    - name: "5672"
+      port: 5672
+      targetPort: 5672
+    - name: "15672"
+      port: 15672
+      targetPort: 15672
+  selector:
+    io.kompose.service: rabbitmq
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: catalog-db
+  name: catalog-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: catalog-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+        kompose.version: 1.38.0 (a8f5d1cbd)
+      labels:
+        io.kompose.service: catalog-db
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: catalog
+            - name: POSTGRES_PASSWORD
+              value: catalog
+            - name: POSTGRES_USER
+              value: catalog
+          image: postgres:16-alpine
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready -U catalog
+            failureThreshold: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+          name: catalog-db
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: catalog-pgdata
+      restartPolicy: Always
+      volumes:
+        - name: catalog-pgdata
+          persistentVolumeClaim:
+            claimName: catalog-pgdata
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: catalog-pgdata
+  name: catalog-pgdata
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: catalog-service
+  name: catalog-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: catalog-service
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+        kompose.version: 1.38.0 (a8f5d1cbd)
+      labels:
+        io.kompose.service: catalog-service
+    spec:
+      containers:
+        - env:
+            - name: DATABASE_URL
+              value: postgres://catalog:catalog@catalog-db:5432/catalog
+          image: catalog-service
+          name: catalog-service
+          ports:
+            - containerPort: 3001
+              protocol: TCP
+      restartPolicy: Always
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: frontend
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: frontend
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+        kompose.version: 1.38.0 (a8f5d1cbd)
+      labels:
+        io.kompose.service: frontend
+    spec:
+      containers:
+        - env:
+            - name: VITE_CATALOG_API
+              value: http://localhost:3001
+            - name: VITE_NOTIFICATION_WS_URL
+              value: ws://localhost:3003/ws/notifications
+            - name: VITE_ORDER_API
+              value: http://localhost:3002
+          image: frontend
+          name: frontend
+          ports:
+            - containerPort: 5173
+              protocol: TCP
+      restartPolicy: Always
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: notification-db
+  name: notification-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: notification-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+        kompose.version: 1.38.0 (a8f5d1cbd)
+      labels:
+        io.kompose.service: notification-db
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: notifications
+            - name: POSTGRES_PASSWORD
+              value: notifications
+            - name: POSTGRES_USER
+              value: notifications
+          image: postgres:16-alpine
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready -U notifications
+            failureThreshold: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+          name: notification-db
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: notification-pgdata
+      restartPolicy: Always
+      volumes:
+        - name: notification-pgdata
+          persistentVolumeClaim:
+            claimName: notification-pgdata
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: notification-pgdata
+  name: notification-pgdata
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: notification-service
+  name: notification-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: notification-service
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+        kompose.version: 1.38.0 (a8f5d1cbd)
+      labels:
+        io.kompose.service: notification-service
+    spec:
+      containers:
+        - env:
+            - name: DATABASE_URL
+              value: postgres://notifications:notifications@notification-db:5432/notifications
+            - name: RABBITMQ_URL
+              value: amqp://guest:guest@rabbitmq:5672
+          image: notification-service
+          name: notification-service
+          ports:
+            - containerPort: 3003
+              protocol: TCP
+      restartPolicy: Always
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: order-db
+  name: order-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: order-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+        kompose.version: 1.38.0 (a8f5d1cbd)
+      labels:
+        io.kompose.service: order-db
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: orders
+            - name: POSTGRES_PASSWORD
+              value: orders
+            - name: POSTGRES_USER
+              value: orders
+          image: postgres:16-alpine
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready -U orders
+            failureThreshold: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+          name: order-db
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: order-pgdata
+      restartPolicy: Always
+      volumes:
+        - name: order-pgdata
+          persistentVolumeClaim:
+            claimName: order-pgdata
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: order-pgdata
+  name: order-pgdata
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: order-service
+  name: order-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: order-service
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+        kompose.version: 1.38.0 (a8f5d1cbd)
+      labels:
+        io.kompose.service: order-service
+    spec:
+      containers:
+        - env:
+            - name: CATALOG_SERVICE_URL
+              value: http://catalog-service:3001
+            - name: DATABASE_URL
+              value: postgres://orders:orders@order-db:5432/orders
+            - name: RABBITMQ_URL
+              value: amqp://guest:guest@rabbitmq:5672
+          image: order-service
+          name: order-service
+          ports:
+            - containerPort: 3002
+              protocol: TCP
+      restartPolicy: Always
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: rabbitmq
+  name: rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: rabbitmq
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\Asus\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f docker-compose.yml -o k8s
+        kompose.version: 1.38.0 (a8f5d1cbd)
+      labels:
+        io.kompose.service: rabbitmq
+    spec:
+      containers:
+        - image: rabbitmq:3.13-management-alpine
+          livenessProbe:
+            exec:
+              command:
+                - rabbitmq-diagnostics
+                - -q
+                - ping
+            failureThreshold: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          name: rabbitmq
+          ports:
+            - containerPort: 5672
+              protocol: TCP
+            - containerPort: 15672
+              protocol: TCP
+      restartPolicy: Always
+
