@@ -7,7 +7,21 @@ const RABBITMQ_URL =
 const EXCHANGE_NAME = "suilens.events";
 const QUEUE_NAME = "notification-service.order-events";
 
-export async function startConsumer() {
+export interface OrderPlacedNotificationEvent {
+  event: "order.placed";
+  timestamp: string;
+  data: {
+    orderId: string;
+    customerName: string;
+    customerEmail: string;
+    lensName: string;
+    message: string;
+  };
+}
+
+export async function startConsumer(
+  onOrderPlaced?: (event: OrderPlacedNotificationEvent) => void | Promise<void>,
+) {
   let retries = 0;
   const maxRetries = 10;
   const retryDelay = 2000;
@@ -34,12 +48,28 @@ export async function startConsumer() {
             const { orderId, customerName, customerEmail, lensName } =
               event.data;
 
+            const message = `Hi ${customerName}, your rental order for ${lensName} has been placed successfully. Order ID: ${orderId}`;
+
             await db.insert(notifications).values({
               orderId,
               type: "order_placed",
               recipient: customerEmail,
-              message: `Hi ${customerName}, your rental order for ${lensName} has been placed successfully. Order ID: ${orderId}`,
+              message,
             });
+
+            if (onOrderPlaced) {
+              await onOrderPlaced({
+                event: "order.placed",
+                timestamp: event.timestamp ?? new Date().toISOString(),
+                data: {
+                  orderId,
+                  customerName,
+                  customerEmail,
+                  lensName,
+                  message,
+                },
+              });
+            }
 
             console.log(`Notification recorded for order ${orderId}`);
           }
