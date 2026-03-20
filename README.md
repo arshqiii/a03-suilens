@@ -26,7 +26,7 @@ docker compose up --build -d
 After all services are running, open:
 
 - Catalog Service: <http://localhost:3001/openapi>
-![alt text](image.png)
+![alt text](image-0.png)
 - Order Service: <http://localhost:3002/openapi>
 ![alt text](image-1.png)
 - Notification Service: <http://localhost:3003/openapi>
@@ -88,3 +88,8 @@ docker compose logs notification-service --tail 20
 ```bash
 docker compose down
 ```
+
+## Bukti Kubernetes
+
+`kubectl get pods -o wide`
+![alt text](image-5.png)
